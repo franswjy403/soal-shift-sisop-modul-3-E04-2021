@@ -4,14 +4,29 @@
 #include <unistd.h>
 #include <pthread.h>
 
-int faktorial(int a){
-    if (a!=0) return a + faktorial (a-1);
-    else return a;
+struct arg_struct
+{
+    int num;
+    int batas;
+};
+
+
+int faktorial(int b, int c){
+    int res = 1, i, start;
+
+    if (b==0 || c==0) return 0;
+    if (c>=b) start = 2;
+    else start = b-c+1;
+    for (i = start; i <= b; i++)
+        res *= i;
+    return res;
 }
 
 void *faktorial_util(void* a){
-    int b = (intptr_t) a;
-    printf ("%d ", faktorial(b));
+    struct arg_struct *args = a;
+    int b = args->num;
+    int c = args->batas;
+    printf ("%d ", faktorial(b, c));
 }
 
 void main(){
@@ -22,17 +37,22 @@ void main(){
     value = shmat(shmid, NULL, 0);
 
     int arr[4][6];
-
-    pthread_t tid[50];
-    int i, j, l, ind = 0, temp;
+    int pengali[4][6]={
+        {7, 3, 2, 4, 0, 14},
+        {3, 2, 2, 1, 0, 2},
+        {2, 4, 3, 2, 1, 2},
+        {0, 0, 2, 2, 3, 0}
+    };
+    pthread_t tid[24];
+    int i, j, l, ind = 0;
+    struct arg_struct temp;
 
     for (i=0; i<4;i++){
         for (j=0; j<6;j++){
             arr[i][j]=*value;
-            temp = arr[i][j];
-            pthread_create(&tid[ind], NULL, &faktorial_util, (void*) (intptr_t) temp);
-            printf("%d ", arr[i][j]);
-            printf("\t");
+            temp.num = arr[i][j];
+            temp.batas = pengali[i][j];
+            pthread_create(&tid[ind], NULL, &faktorial_util, (void*) &temp);
             ind++;
             sleep(1);
         }
